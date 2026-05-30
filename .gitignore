@@ -1,0 +1,21 @@
+# Build folders
+build/
+out/
+
+# Visual Studio
+.vs/
+*.VC.db
+*.VC.opendb
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+
+# Generated files
+*.obj
+*.pdb
+*.ilk
+*.exe
+
+# User files
+*.user
