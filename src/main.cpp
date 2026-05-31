@@ -1,96 +1,102 @@
 #include <iostream>
 #include "DynamicArray.h"
+#include "LinkedList.h"
 
 int main()
 {
-    DynamicArray<int> Array;
+    DoublyLinkedList<int> List;
 
     std::cout << "===== INITIAL STATE =====\n";
-    std::cout << "CurrentSize: " << Array.Size() << '\n';
-    std::cout << "TotalCapacity: " << Array.Capacity() << '\n';
-    std::cout << "IsEmpty: " << Array.IsEmpty() << '\n';
+    std::cout << "Size: " << List.Size() << '\n';
+    std::cout << "IsEmpty: " << List.IsEmpty() << '\n';
 
-    std::cout << "\n===== ADD ELEMENTS =====\n";
+    std::cout << "\n===== ADD LAST =====\n";
 
-    for (int Value = 1; Value <= 20; ++Value)
-    {
-        Array.Add(Value);
+    List.Add(10);
+    List.Add(20);
+    List.Add(30);
 
-        std::cout
-            << "Added: "
-            << Value
-            << " | CurrentSize: "
-            << Array.Size()
-            << " | TotalCapacity: "
-            << Array.Capacity()
-            << '\n';
-    }
+    std::cout << List << '\n';
 
-    std::cout << "\n===== ARRAY CONTENT =====\n";
-    std::cout << Array << '\n';
+    std::cout << "\n===== ADD FIRST =====\n";
 
-    std::cout << "\n===== GET =====\n";
-    std::cout << "Index 0: " << Array.Get(0) << '\n';
-    std::cout << "Index 5: " << Array.Get(5) << '\n';
-    std::cout << "Index 10: " << Array.Get(10) << '\n';
+    List.AddFirst(5);
+    List.AddFirst(1);
 
-    std::cout << "\n===== SET =====\n";
+    std::cout << List << '\n';
 
-    Array.Set(0, 100);
-    Array.Set(1, 200);
+    std::cout << "\n===== PEEK =====\n";
 
-    std::cout << Array << '\n';
+    std::cout << "First: " << List.PeekFirst() << '\n';
+    std::cout << "Last : " << List.PeekLast() << '\n';
 
-    std::cout << "\n===== INDEX OF =====\n";
+    std::cout << "\n===== SIZE =====\n";
 
-    std::cout << "100 -> " << Array.IndexOf(100) << '\n';
-    std::cout << "200 -> " << Array.IndexOf(200) << '\n';
-    std::cout << "999 -> " << Array.IndexOf(999) << '\n';
+    std::cout << "Size: " << List.Size() << '\n';
 
     std::cout << "\n===== CONTAINS =====\n";
 
-    std::cout << "Contains 100: " << Array.Contains(100) << '\n';
-    std::cout << "Contains 999: " << Array.Contains(999) << '\n';
+    std::cout << "Contains 20: " << List.Contains(20) << '\n';
+    std::cout << "Contains 999: " << List.Contains(999) << '\n';
 
-    std::cout << "\n===== REMOVE AT =====\n";
+    std::cout << "\n===== INDEX OF =====\n";
 
-    Array.RemoveAt(0);
+    std::cout << "IndexOf(20): " << List.IndexOf(20) << '\n';
+    std::cout << "IndexOf(999): " << List.IndexOf(999) << '\n';
 
-    std::cout << Array << '\n';
-    std::cout << "CurrentSize: " << Array.Size() << '\n';
+    std::cout << "\n===== REMOVE FIRST =====\n";
+
+    int RemovedFirst = List.RemoveFirst();
+
+    std::cout << "Removed: " << RemovedFirst << '\n';
+    std::cout << List << '\n';
+
+    std::cout << "\n===== REMOVE LAST =====\n";
+
+    int RemovedLast = List.RemoveLast();
+
+    std::cout << "Removed: " << RemovedLast << '\n';
+    std::cout << List << '\n';
 
     std::cout << "\n===== REMOVE VALUE =====\n";
 
-    Array.Remove(10);
-    Array.Remove(15);
+    bool Removed = List.Remove(20);
 
-    std::cout << Array << '\n';
+    std::cout << "Removed 20: " << Removed << '\n';
+    std::cout << List << '\n';
 
-    std::cout << "\n===== RANGE FOR =====\n";
+    std::cout << "\n===== REMOVE AT =====\n";
 
-    for (const int Value : Array)
-    {
-        std::cout << Value << ' ';
-    }
+    List.Add(100);
+    List.Add(200);
+    List.Add(300);
 
-    std::cout << '\n';
+    std::cout << "Before: " << List << '\n';
+
+    int RemovedAt = List.RemoveAt(1);
+
+    std::cout << "Removed: " << RemovedAt << '\n';
+    std::cout << "After : " << List << '\n';
 
     std::cout << "\n===== CLEAR =====\n";
 
-    Array.Clear();
+    List.Clear();
 
-    std::cout << "CurrentSize: " << Array.Size() << '\n';
-    std::cout << "IsEmpty: " << Array.IsEmpty() << '\n';
+    std::cout << "Size: " << List.Size() << '\n';
+    std::cout << "IsEmpty: " << List.IsEmpty() << '\n';
+    std::cout << List << '\n';
 
     std::cout << "\n===== EXCEPTION TEST =====\n";
 
     try
     {
-        Array.Get(0);
+        List.PeekFirst();
     }
     catch (const std::exception& Exception)
     {
-        std::cout << "Caught exception: " << Exception.what() << '\n';
+        std::cout << "Caught exception: "
+            << Exception.what()
+            << '\n';
     }
 
     return 0;
