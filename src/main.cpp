@@ -2,11 +2,11 @@
 #include "DynamicArray.h"
 #include "LinkedList.h"
 #include "ListStack.h"
+#include "ArrayStack.h"
 
 int main()
 {
-    ListStack<int> Stack;
-
+    ArrayStack<int> Stack;
     Stack.Push(10);
     Stack.Push(20);
     Stack.Push(30);
