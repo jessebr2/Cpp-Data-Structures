@@ -9,7 +9,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_executable(
     CppDataStructures
     src/main.cpp
- "include/ArrayStack.h" "include/Queue.h")
+ "include/ArrayStack.h" "include/ListQueue.h" "include/ArrayQueue.h")
 
 target_include_directories(
     CppDataStructures

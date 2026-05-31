@@ -6,7 +6,7 @@
 #include "LinkedList.h"
 
 template <typename T>
-class Queue
+class ListQueue
 {
 private:
 	DoublyLinkedList<T> List;
@@ -26,7 +26,7 @@ public:
 	{
 		if (IsEmpty())
 		{
-			throw std::out_of_range("Queue is empty.");
+			throw std::out_of_range("ListQueue is empty.");
 		}
 		return List.PeekFirst();
 	}
@@ -40,12 +40,12 @@ public:
 	{
 		if (IsEmpty())
 		{
-			throw std::out_of_range("Queue is empty.");
+			throw std::out_of_range("ListQueue is empty.");
 		}
 		return List.RemoveFirst();
 	}
 
-	friend std::ostream& operator<<(std::ostream& OutputStream, const Queue& InQueue)
+	friend std::ostream& operator<<(std::ostream& OutputStream, const ListQueue& InQueue)
 	{
 		OutputStream << InQueue.List;
 		return OutputStream;
