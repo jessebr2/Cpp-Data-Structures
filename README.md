@@ -14,12 +14,12 @@ A personal study project focused on implementing classic data structures and alg
 ## Implemented
 
 - [x] Dynamic Array
-
-## Planned
-
 - [x] Linked List
 - [x] Stack
 - [x] Queue
 - [x] Priority Queue
 - [x] Binary Search Tree
+      
+## Planned
+
 - [ ] Hash Table
