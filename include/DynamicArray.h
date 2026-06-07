@@ -3,14 +3,14 @@
 #include <cstddef>
 #include <stdexcept>
 #include <ostream>
-#include <utility>
+#include <utility> 
 
 template <typename T>
 class DynamicArray
 {
 public:
 	static constexpr std::size_t DefaultCapacity = 16;
-
+	
 	DynamicArray()
 		: DynamicArray(DefaultCapacity)
 	{
