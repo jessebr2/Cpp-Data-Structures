@@ -6,6 +6,7 @@
 #include "ArrayQueue.h"
 #include "ListQueue.h"
 #include "PriorityQueue.h"
+#include "BinarySearchTree.h"
 
 void TestListQueue()
 {
@@ -192,11 +193,70 @@ void TestPriorityQueueStress()
     std::cout << "Stress test passed.\n";
 }
 
+void PrintTraversal(const BinarySearchTree<int>& Tree, TraversalOrder Order, const char* Name)
+{
+    std::cout << Name << ": " << Tree.Traverse(Order) << '\n';
+}
+
+void TestBinarySearchTree()
+{
+    BinarySearchTree<int> Tree;
+
+    Tree.Add(8);
+    Tree.Add(3);
+    Tree.Add(10);
+    Tree.Add(1);
+    Tree.Add(6);
+    Tree.Add(14);
+    Tree.Add(4);
+    Tree.Add(7);
+    Tree.Add(13);
+
+    std::cout << "Tree InOrder: " << Tree << '\n';
+    std::cout << "Size: " << Tree.Size() << '\n';
+    std::cout << "Height: " << Tree.Height() << '\n';
+
+    std::cout << "Contains 6: " << Tree.Contains(6) << '\n';
+    std::cout << "Contains 99: " << Tree.Contains(99) << '\n';
+
+    PrintTraversal(Tree, TraversalOrder::InOrder, "InOrder");
+    PrintTraversal(Tree, TraversalOrder::PreOrder, "PreOrder");
+    PrintTraversal(Tree, TraversalOrder::PostOrder, "PostOrder");
+    PrintTraversal(Tree, TraversalOrder::LevelOrder, "LevelOrder");
+
+    std::cout << "\nRemove leaf 4\n";
+    Tree.Remove(4);
+    std::cout << Tree << '\n';
+
+    std::cout << "\nRemove node with one child 14\n";
+    Tree.Remove(14);
+    std::cout << Tree << '\n';
+
+    std::cout << "\nRemove node with two children 3\n";
+    Tree.Remove(3);
+    std::cout << Tree << '\n';
+
+    std::cout << "\nRemove root 8\n";
+    Tree.Remove(8);
+    std::cout << Tree << '\n';
+
+    std::cout << "Final Size: " << Tree.Size() << '\n';
+    std::cout << "Final Height: " << Tree.Height() << '\n';
+
+    Tree.Clear();
+
+    std::cout << "\nAfter Clear\n";
+    std::cout << "IsEmpty: " << Tree.IsEmpty() << '\n';
+    std::cout << "Size: " << Tree.Size() << '\n';
+    std::cout << "Height: " << Tree.Height() << '\n';
+}
+
 int main()
 {
-    TestPriorityQueue();
-    TestPriorityQueueDuplicates();
-    TestPriorityQueueStress();
+    //TestPriorityQueue();
+    //TestPriorityQueueDuplicates();
+    //TestPriorityQueueStress();
+    TestBinarySearchTree();
 
     return 0;
 }

@@ -1,7 +1,10 @@
 #pragma once
+
+#include <algorithm>
 #include <cstddef>
-#include <stdexcept>
 #include <ostream>
+#include "ArrayQueue.h"
+#include "DynamicArray.h"
 
 enum class TraversalOrder
 {
@@ -30,14 +33,19 @@ private:
 	
 
 public:
-	bool IsEmpty() const
+	BinarySearchTree() = default;
+
+	~BinarySearchTree()
 	{
-		return Size() == 0;
+		Clear();
 	}
 
-	bool Size() const
+	BinarySearchTree(const BinarySearchTree&) = delete;
+	BinarySearchTree& operator=(const BinarySearchTree&) = delete;
+
+	bool IsEmpty() const
 	{
-		return NodeCount;
+		return Root == nullptr;
 	}
 
 	bool Add(const T& Value)
@@ -49,9 +57,16 @@ public:
 		return true;
 	}
 
-	bool Contains(const T& Value)
+	bool Contains(const T& Value) const
 	{
-		//TODO
+		return Contains(Root, Value);
+	}
+
+	void Clear()
+	{
+		Clear(Root);
+		Root = nullptr;
+		NodeCount = 0;
 	}
 
 	bool Remove(const T& Value)
@@ -66,24 +81,41 @@ public:
 		return false;
 	}
 
-	bool Contains(const T& Value)
-	{
-		return Contains(Root, Value);
-	}
-
-	std::size_t Height() const
+	int Height() const
 	{
 		return Height(Root);
 	}
 
 	std::size_t Size() const
 	{
-		return Size(Root);
+		return NodeCount;
 	}
 
-	bool IsEmpty() const
+	DynamicArray<T> Traverse(TraversalOrder Order) const
 	{
-		return Size() == 0;
+		DynamicArray<T> Result;
+		switch (Order)
+		{
+			case TraversalOrder::InOrder:
+				InOrderTraversal(Root, Result);
+				break;
+			case TraversalOrder::PreOrder:
+				PreOrderTraversal(Root, Result);
+				break;
+			case TraversalOrder::PostOrder:
+				PostOrderTraversal(Root, Result);
+				break;
+			case TraversalOrder::LevelOrder:
+				LevelOrderTraversal(Root, Result);
+				break;
+		}
+		return Result;
+	}
+
+	friend std::ostream& operator<<(std::ostream& OutputStream, const BinarySearchTree& Tree)
+	{
+		OutputStream << Tree.Traverse(TraversalOrder::InOrder);
+		return OutputStream;
 	}
 
 private:
@@ -105,7 +137,7 @@ private:
 		{
 			CurrentNode->Right = Add(CurrentNode->Right, Value);
 		}
-		return Node;
+		return CurrentNode;
 	}
 
 	Node* Remove(Node* CurrentNode, const T& Value)
@@ -116,7 +148,7 @@ private:
 		{
 			CurrentNode->Left = Remove(CurrentNode->Left, Value);
 		}
-		else if (Value > CurrentNode->Data) // Dig into right subtree
+		else if (CurrentNode->Data < Value) // Dig into right subtree
 		{
 			CurrentNode->Right = Remove(CurrentNode->Right, Value);
 		}
@@ -127,14 +159,16 @@ private:
 				// This is the case with only a right subtree or no subtree at all.
 				// In this situation just swap the node to remove with its right child.
 				Node* RightChild = CurrentNode->Right;
-				delete RightChild;
+				delete CurrentNode;
+				return RightChild;
 			}
 			else if (CurrentNode->Right == nullptr)
 			{
-				// This is the case with only a left subtree or no subtree at all.
+				// This is the case with only a left subtree.
 				// In this situation just swap the node to remove with its left child.
 				Node* LeftChild = CurrentNode->Left;
-				delete LeftChild;
+				delete CurrentNode;
+				return LeftChild;
 			}
 			else
 			{
@@ -145,7 +179,7 @@ private:
 				// left as possible in the right subtree.
 
 				// Find the leftmost node in the right subtree
-				Node* Temp = DigLeft(Node->Right);
+				Node* Temp = DigLeft(CurrentNode->Right);
 
 				// Swap the data
 				CurrentNode->Data = Temp->Data;
@@ -156,6 +190,7 @@ private:
 				CurrentNode->Right = Remove(CurrentNode->Right, Temp->Data);
 			}
 		}
+		return CurrentNode;
 	}
 
 	Node* DigLeft(Node* InNode)
@@ -169,7 +204,7 @@ private:
 	}
 
 	// Private recursive method to check if a value exists in the tree.
-	bool Contains(Node* CurrentNode, const T& Value)
+	bool Contains(Node* CurrentNode, const T& Value) const
 	{
 		// Base case: reached a leaf node without finding the value
 		if (CurrentNode == nullptr) return false;
@@ -178,7 +213,7 @@ private:
 		{
 			return Contains(CurrentNode->Left, Value);
 		}
-		else if (Value > CurrentNode->Data) // Dig into right subtree
+		else if (CurrentNode->Data < Value) // Dig into right subtree
 		{
 			return Contains(CurrentNode->Right, Value);
 		}
@@ -188,21 +223,65 @@ private:
 		}
 	}
 	
-	std::size_t Height(Node* CurrentNode) const
+	int Height(Node* CurrentNode) const
 	{
-		if (CurrentNode == nullptr) return 0;
+		if (CurrentNode == nullptr) return -1;
 		return std::max(Height(CurrentNode->Left), Height(CurrentNode->Right)) + 1;
 	}
 
-	std::size_t Size(Node* CurrentNode) const
+	void PreOrderTraversal(Node* CurrentNode, DynamicArray<T>& Result) const
 	{
-		if (CurrentNode == nullptr) return 0;
-		return Size(CurrentNode->Left) + Size(CurrentNode->Right) + 1;
+		if (CurrentNode == nullptr) return;
+		Result.Add(CurrentNode->Data);
+		PreOrderTraversal(CurrentNode->Left, Result);
+		PreOrderTraversal(CurrentNode->Right, Result);
 	}
 
-	bool IsEmpty(Node* CurrentNode) const
+	void InOrderTraversal(Node* CurrentNode, DynamicArray<T>& Result) const
 	{
-		return CurrentNode == nullptr;
+		if (CurrentNode == nullptr) return;
+		InOrderTraversal(CurrentNode->Left, Result);
+		Result.Add(CurrentNode->Data);
+		InOrderTraversal(CurrentNode->Right, Result);
+	}
+
+	void PostOrderTraversal(Node* CurrentNode, DynamicArray<T>& Result) const
+	{
+		if (CurrentNode == nullptr) return;
+		PostOrderTraversal(CurrentNode->Left, Result);
+		PostOrderTraversal(CurrentNode->Right, Result);
+		Result.Add(CurrentNode->Data);
+	}
+
+	void LevelOrderTraversal(Node* CurrentNode, DynamicArray<T>& Result) const
+	{
+		if (CurrentNode == nullptr) return;
+		ArrayQueue<Node*> Queue(NodeCount);
+		Queue.Enqueue(CurrentNode);
+		while (!Queue.IsEmpty())
+		{
+			Node* Current = Queue.Dequeue();
+			if (Current == nullptr) continue;
+
+			Result.Add(Current->Data);
+
+			if (Current->Left != nullptr)
+			{
+				Queue.Enqueue(Current->Left);
+			}
+			if (Current->Right != nullptr)
+			{
+				Queue.Enqueue(Current->Right);
+			}
+		}
+	}
+
+	void Clear(Node* CurrentNode)
+	{
+		if (CurrentNode == nullptr) return;
+		Clear(CurrentNode->Left);
+		Clear(CurrentNode->Right);
+		delete CurrentNode;
 	}
 
 private:

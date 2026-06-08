@@ -32,14 +32,14 @@ public:
 		return CurrentSize;
 	}
 
-	std::size_t GetCapacity() const
-	{
-		return Capacity;
-	}
-
 	bool IsEmpty() const
 	{
 		return CurrentSize == 0;
+	}
+
+	std::size_t GetCapacity() const
+	{
+		return Capacity;
 	}
 
 	bool IsFull() const
