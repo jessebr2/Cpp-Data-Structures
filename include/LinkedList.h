@@ -3,6 +3,7 @@
 #include <ostream>
 #include <stdexcept>
 #include <utility>
+#include <vector>
 
 template <typename T>
 class DoublyLinkedList
@@ -236,6 +237,19 @@ public:
 	bool Contains(const T& Value) const
 	{
 		return IndexOf(Value) != -1;
+	}
+
+	std::vector<T> ToVector() const
+	{
+		std::vector<T> Result;
+		Result.reserve(CurrentSize);
+		Node* Trav = Head;
+		while (Trav != nullptr)
+		{
+			Result.push_back(Trav->Data);
+			Trav = Trav->Next;
+		}
+		return Result;
 	}
 
 	friend std::ostream& operator<<(std::ostream& OutputStream, const DoublyLinkedList& List)

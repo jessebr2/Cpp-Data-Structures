@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 #include "DynamicArray.h"
 #include "LinkedList.h"
 #include "ListStack.h"
@@ -7,6 +8,7 @@
 #include "ListQueue.h"
 #include "PriorityQueue.h"
 #include "BinarySearchTree.h"
+#include "HashTable/SeparateChainingHashTable.h"
 
 void TestListQueue()
 {
@@ -251,12 +253,98 @@ void TestBinarySearchTree()
     std::cout << "Height: " << Tree.Height() << '\n';
 }
 
+void TestSeparateChainingHashTable()
+{
+    std::cout << "\n===== SEPARATE CHAINING HASH TABLE =====\n";
+
+    SeparateChainingHashTable<std::string, int> Table;
+
+    std::cout << "Empty: " << std::boolalpha << Table.IsEmpty() << '\n';
+
+    // Insert
+    Table.Insert("apple", 1);
+    Table.Insert("banana", 2);
+    Table.Insert("cherry", 3);
+    Table.Insert("date", 4);
+    Table.Insert("elderberry", 5);
+
+    std::cout << "\nAfter Insert:\n";
+    std::cout << Table << '\n';
+    std::cout << "Size: " << Table.Size() << '\n';
+
+    // Get
+    std::cout << "\nGet 'banana': " << Table.Get("banana").value_or(-1) << '\n';
+    std::cout << "Get 'missing': " << Table.Get("missing").value_or(-1) << '\n';
+
+    // HasKey / ContainsKey
+    std::cout << "\nHasKey 'cherry': " << Table.HasKey("cherry") << '\n';
+    std::cout << "HasKey 'missing': " << Table.HasKey("missing") << '\n';
+
+    // Update existing key
+    std::cout << "\nUpdating 'apple' to 99:\n";
+    Table.Insert("apple", 99);
+    std::cout << "Get 'apple': " << Table.Get("apple").value_or(-1) << '\n';
+
+    // Keys / Values
+    std::cout << "\nKeys:\n";
+    for (const auto& Key : Table.Keys())
+    {
+        std::cout << "  " << Key << '\n';
+    }
+
+    std::cout << "\nValues:\n";
+    for (const auto& Value : Table.Values())
+    {
+        std::cout << "  " << Value << '\n';
+    }
+
+    // Remove
+    std::cout << "\nRemoving 'banana': " << Table.Remove("banana") << '\n';
+    std::cout << "Size after remove: " << Table.Size() << '\n';
+    std::cout << "HasKey 'banana': " << Table.HasKey("banana") << '\n';
+
+    // Trigger resize by inserting many keys
+    std::cout << "\nInserting many keys to trigger resize...\n";
+    for (int i = 0; i < 20; ++i)
+    {
+        Table.Insert("key" + std::to_string(i), i);
+    }
+    std::cout << "Size after bulk insert: " << Table.Size() << '\n';
+
+    // Clear
+    Table.Clear();
+    std::cout << "\nAfter Clear:\n";
+    std::cout << "Empty: " << Table.IsEmpty() << '\n';
+    std::cout << "Size: " << Table.Size() << '\n';
+
+    // Exception: remove from empty
+    try
+    {
+        Table.Remove("apple");
+    }
+    catch (const std::exception& Exception)
+    {
+        std::cout << "Exception: " << Exception.what() << '\n';
+    }
+
+    // Exception: invalid key
+    try
+    {
+        Table.Insert("", 1);
+    }
+    catch (const std::exception& Exception)
+    {
+        std::cout << "Exception: " << Exception.what() << '\n';
+    }
+}
+
 int main()
 {
     //TestPriorityQueue();
     //TestPriorityQueueDuplicates();
     //TestPriorityQueueStress();
-    TestBinarySearchTree();
+    //TestBinarySearchTree();
+    TestSeparateChainingHashTable();
 
     return 0;
 }
