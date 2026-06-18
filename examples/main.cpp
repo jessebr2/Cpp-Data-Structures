@@ -1,3 +1,4 @@
+#include <cassert>
 #include <iostream>
 #include <string>
 #include "DynamicArray.h"
@@ -9,6 +10,8 @@
 #include "PriorityQueue.h"
 #include "BinarySearchTree.h"
 #include "HashTable/SeparateChainingHashTable.h"
+#include "HashTable/HashTableQuadraticProbing.h"
+
 
 void TestListQueue()
 {
@@ -338,13 +341,115 @@ void TestSeparateChainingHashTable()
     }
 }
 
+void testHashTableQuadraticProbing()
+{
+    std::cout << "\n===== HASH TABLE (QUADRATIC PROBING) =====\n";
+
+    HashTableQuadraticProbing<int, std::string> table(8, 0.45);
+
+    std::cout << "Initial state\n";
+    std::cout << "  empty: " << std::boolalpha << table.empty() << '\n';
+    std::cout << "  size : " << table.size() << '\n';
+    assert(table.empty());
+    assert(table.size() == 0);
+
+    std::cout << "\n[Insert]\n";
+    std::string old = table.insert(1, "one");
+    std::cout << "  insert(1, \"one\") -> old: \"" << old << "\"\n";
+    assert(old.empty());
+
+    old = table.insert(2, "two");
+    std::cout << "  insert(2, \"two\") -> old: \"" << old << "\"\n";
+    assert(old.empty());
+
+    old = table.insert(3, "three");
+    std::cout << "  insert(3, \"three\") -> old: \"" << old << "\"\n";
+    assert(old.empty());
+
+    std::cout << "  size after insert: " << table.size() << '\n';
+    assert(!table.empty());
+    assert(table.size() == 3);
+
+    std::cout << "\n[Get / Contains]\n";
+    std::cout << "  contains(1): " << table.contains(1) << '\n';
+    std::cout << "  contains(99): " << table.contains(99) << '\n';
+    assert(table.contains(1));
+    assert(!table.contains(99));
+
+    std::cout << "  get(1): " << table.get(1) << '\n';
+    std::cout << "  get(2): " << table.get(2) << '\n';
+    assert(table.get(1) == "one");
+    assert(table.get(2) == "two");
+
+    std::cout << "\n[Update existing key]\n";
+    old = table.insert(2, "TWO");
+    std::cout << "  insert(2, \"TWO\") -> old: \"" << old << "\"\n";
+    std::cout << "  get(2): " << table.get(2) << '\n';
+    assert(old == "two");
+    assert(table.get(2) == "TWO");
+    assert(table.size() == 3);
+
+    std::cout << "\n[Remove]\n";
+    std::cout << "  remove(2): " << table.remove(2) << '\n';
+    assert(!table.contains(2));
+    assert(table.size() == 2);
+
+    std::cout << "  remove(999): " << table.remove(999) << '\n';
+    assert(!table.remove(999));
+
+    std::cout << "\n[keys / values]\n";
+    const std::vector<int> keysBeforeBulk = table.keys();
+    const std::vector<std::string> valuesBeforeBulk = table.values();
+
+    std::cout << "  keys (" << keysBeforeBulk.size() << "): ";
+    for (const int k : keysBeforeBulk) { std::cout << k << ' '; }
+    std::cout << '\n';
+
+    std::cout << "  values (" << valuesBeforeBulk.size() << "): ";
+    for (const auto& v : valuesBeforeBulk) { std::cout << v << ' '; }
+    std::cout << '\n';
+
+    assert(keysBeforeBulk.size() == table.size());
+    assert(valuesBeforeBulk.size() == table.size());
+
+    std::cout << "\n[Bulk insert]\n";
+    for (int k = 4; k <= 30; ++k)
+    {
+        table.insert(k, "v" + std::to_string(k));
+    }
+    std::cout << "  size after bulk insert: " << table.size() << '\n';
+    std::cout << "  contains(30): " << table.contains(30) << '\n';
+    std::cout << "  get(30): " << table.get(30) << '\n';
+    assert(table.contains(30));
+    assert(table.get(30) == "v30");
+
+    std::cout << "\n[Move constructor]\n";
+    HashTableQuadraticProbing<int, std::string> moved(std::move(table));
+    std::cout << "  moved.contains(1): " << moved.contains(1) << '\n';
+    std::cout << "  moved.contains(30): " << moved.contains(30) << '\n';
+    std::cout << "  moved.size(): " << moved.size() << '\n';
+    assert(moved.contains(1));
+    assert(moved.contains(30));
+
+    std::cout << "\n[Clear]\n";
+    moved.clear();
+    std::cout << "  moved.empty(): " << moved.empty() << '\n';
+    std::cout << "  moved.size() : " << moved.size() << '\n';
+    assert(moved.empty());
+    assert(moved.size() == 0);
+
+    std::cout << "\nAll HashTableQuadraticProbing tests passed.\n";
+}
+
 int main()
 {
     //TestPriorityQueue();
     //TestPriorityQueueDuplicates();
     //TestPriorityQueueStress();
     //TestBinarySearchTree();
-    TestSeparateChainingHashTable();
+    //TestSeparateChainingHashTable();
+
+    testHashTableQuadraticProbing();
 
     return 0;
 }
