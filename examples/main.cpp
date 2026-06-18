@@ -11,7 +11,7 @@
 #include "BinarySearchTree.h"
 #include "HashTable/SeparateChainingHashTable.h"
 #include "HashTable/HashTableQuadraticProbing.h"
-
+#include "UnionFind.h"
 
 void TestListQueue()
 {
@@ -441,6 +441,57 @@ void testHashTableQuadraticProbing()
     std::cout << "\nAll HashTableQuadraticProbing tests passed.\n";
 }
 
+void TestUnionFind()
+{
+    std::cout << "\n===== UNION FIND =====\n";
+
+    UnionFind Uf(10);
+
+    std::cout << "Initial state:\n";
+    std::cout << "  num elements : " << Uf.size() << '\n';
+    std::cout << "  components   : " << Uf.components() << '\n';
+
+    std::cout << "\n[Unify]\n";
+    Uf.unify(1, 2);
+    std::cout << "  unify(1,2) -> components: " << Uf.components() << '\n';
+
+    Uf.unify(2, 3);
+    std::cout << "  unify(2,3) -> components: " << Uf.components() << '\n';
+
+    Uf.unify(4, 5);
+    std::cout << "  unify(4,5) -> components: " << Uf.components() << '\n';
+
+    Uf.unify(6, 7);
+    std::cout << "  unify(6,7) -> components: " << Uf.components() << '\n';
+
+    Uf.unify(7, 8);
+    std::cout << "  unify(7,8) -> components: " << Uf.components() << '\n';
+
+    Uf.unify(3, 8);
+    std::cout << "  unify(3,8) -> components: " << Uf.components() << '\n';
+
+    std::cout << "\n[Connected]\n";
+    std::cout << "  connected(1,3): " << std::boolalpha << Uf.connected(1, 3) << '\n';
+    std::cout << "  connected(1,8): " << std::boolalpha << Uf.connected(1, 8) << '\n';
+    std::cout << "  connected(1,9): " << std::boolalpha << Uf.connected(1, 9) << '\n';
+    std::cout << "  connected(4,5): " << std::boolalpha << Uf.connected(4, 5) << '\n';
+    std::cout << "  connected(4,6): " << std::boolalpha << Uf.connected(4, 6) << '\n';
+
+    std::cout << "\n[Find roots]\n";
+    std::cout << "  find(1): " << Uf.find(1) << '\n';
+    std::cout << "  find(2): " << Uf.find(2) << '\n';
+    std::cout << "  find(8): " << Uf.find(8) << '\n';
+    std::cout << "  find(9): " << Uf.find(9) << '\n';
+
+    std::cout << "\n[Component sizes]\n";
+    std::cout << "  componentSize(1): " << Uf.componentSize(1) << '\n';
+    std::cout << "  componentSize(4): " << Uf.componentSize(4) << '\n';
+    std::cout << "  componentSize(9): " << Uf.componentSize(9) << '\n';
+
+    std::cout << "\nFinal components: " << Uf.components() << '\n';
+    std::cout << "===== END UNION FIND TEST =====\n";
+}
+
 int main()
 {
     //TestPriorityQueue();
@@ -448,8 +499,9 @@ int main()
     //TestPriorityQueueStress();
     //TestBinarySearchTree();
     //TestSeparateChainingHashTable();
+    //testHashTableQuadraticProbing();
 
-    testHashTableQuadraticProbing();
+    TestUnionFind();
 
     return 0;
 }
