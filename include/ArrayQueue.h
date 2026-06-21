@@ -96,6 +96,7 @@ public:
 	}
 
 private:
+	// Cache line 1: Ptr 
 	T* Data = nullptr;
 	std::size_t CurrentSize = 0;
 	std::size_t Capacity = 0;

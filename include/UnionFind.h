@@ -10,7 +10,7 @@
 * William Fiset, which, in turn, was inspired by Robert Sedgewick and Kevin Wayne in
 * 'Algoritms Fourth Edition'.
 * 
-* @author Jesse Andrade, jesse.berto.andrade
+* @author Jesse Andrade, jesse.berto.andrade@gmail.com
 */
 
 class UnionFind
