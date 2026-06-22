@@ -27,55 +27,55 @@ public:
 	ArrayQueue(const ArrayQueue&) = delete;
 	ArrayQueue& operator=(const ArrayQueue&) = delete;
 
-	std::size_t Size() const
+	std::size_t size() const
 	{
-		return CurrentSize;
+		return current_size_;
 	}
 
-	bool IsEmpty() const
+	bool empty() const
 	{
-		return CurrentSize == 0;
+		return current_size_ == 0;
 	}
 
-	std::size_t GetCapacity() const
+	std::size_t capacity() const
 	{
 		return Capacity;
 	}
 
-	bool IsFull() const
+	bool full() const
 	{
-		return CurrentSize == Capacity;
+		return current_size_ == Capacity;
 	}
 
-	const T& Peek() const
+	const T& peek() const
 	{
-		if (IsEmpty())
+		if (empty())
 		{
 			throw std::out_of_range("ArrayQueue is empty.");
 		}
-		return Data[FrontIndex];
+		return Data[front_index_];
 	}
 
-	void Enqueue(const T& Element)
+	void enqueue(const T& Element)
 	{
-		if (IsFull())
+		if (full())
 		{
 			throw std::out_of_range("ArrayQueue is full.");
 		}
-		Data[BackIndex] = Element;
-		BackIndex = (BackIndex + 1) % Capacity;
-		++CurrentSize;
+		Data[back_index_] = Element;
+		back_index_ = (back_index_ + 1) % Capacity;
+		++current_size_;
 	}
 
-	T Dequeue()
+	T dequeue()
 	{
-		if(IsEmpty())
+		if(empty())
 		{
 			throw std::out_of_range("ArrayQueue is empty.");
 		}
-		T DequeuedElement = std::move(Data[FrontIndex]);
-		FrontIndex = (FrontIndex + 1) % Capacity;
-		--CurrentSize;
+		T DequeuedElement = std::move(Data[front_index_]);
+		front_index_ = (front_index_ + 1) % Capacity;
+		--current_size_;
 
 		return DequeuedElement;
 	}
@@ -83,10 +83,10 @@ public:
 	friend std::ostream& operator<<(std::ostream& OutputStream, const ArrayQueue& InQueue)
 	{
 		OutputStream << "[";
-		for (std::size_t i = 0; i < InQueue.CurrentSize; ++i)
+		for (std::size_t i = 0; i < InQueue.current_size_; ++i)
 		{
-			OutputStream << InQueue.Data[(InQueue.FrontIndex + i) % InQueue.Capacity];
-			if (i < InQueue.CurrentSize - 1)
+			OutputStream << InQueue.Data[(InQueue.front_index_ + i) % InQueue.Capacity];
+			if (i < InQueue.current_size_ - 1)
 			{
 				OutputStream << ", ";
 			}
@@ -98,9 +98,9 @@ public:
 private:
 	// Cache line 1: Ptr 
 	T* Data = nullptr;
-	std::size_t CurrentSize = 0;
+	std::size_t current_size_ = 0;
 	std::size_t Capacity = 0;
 
-	std::size_t FrontIndex = 0; // Index of the front element in the queue
-	std::size_t BackIndex = 0;  // Index where the next element will be enqueued
+	std::size_t front_index_ = 0; // Index of the front element in the queue
+	std::size_t back_index_ = 0;  // Index where the next element will be enqueued
 };

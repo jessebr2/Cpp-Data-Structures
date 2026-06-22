@@ -257,21 +257,21 @@ private:
 	{
 		if (CurrentNode == nullptr) return;
 		ArrayQueue<Node*> Queue(NodeCount);
-		Queue.Enqueue(CurrentNode);
-		while (!Queue.IsEmpty())
+		Queue.enqueue(CurrentNode);
+		while (!Queue.empty())
 		{
-			Node* Current = Queue.Dequeue();
+			Node* Current = Queue.dequeue();
 			if (Current == nullptr) continue;
 
 			Result.Add(Current->Data);
 
 			if (Current->Left != nullptr)
 			{
-				Queue.Enqueue(Current->Left);
+				Queue.enqueue(Current->Left);
 			}
 			if (Current->Right != nullptr)
 			{
-				Queue.Enqueue(Current->Right);
+				Queue.enqueue(Current->Right);
 			}
 		}
 	}

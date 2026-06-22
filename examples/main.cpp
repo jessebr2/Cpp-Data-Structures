@@ -13,6 +13,20 @@
 #include "HashTable/HashTableQuadraticProbing.h"
 #include "UnionFind.h"
 
+#include <iostream>
+#include <thread>
+#include <chrono>
+#include <vector>
+#include <mutex>
+#include <cassert>
+#include <atomic>
+
+// Windows/MSVC intrinsics library for CPU pause
+#include <intrin.h>
+
+#include "LowLatency/LockFreeSPSCQueue.h"   
+
+
 void TestListQueue()
 {
     std::cout << "\n===== LIST QUEUE =====\n";
@@ -57,58 +71,58 @@ void TestListQueue()
     }
 }
 
-void TestArrayQueue()
-{
-    std::cout << "\n===== ARRAY QUEUE =====\n";
-
-    ArrayQueue<int> Queue(5);
-
-    Queue.Enqueue(10);
-    Queue.Enqueue(20);
-    Queue.Enqueue(30);
-
-    std::cout << Queue << '\n';
-
-    std::cout << "Peek: " << Queue.Peek() << '\n';
-    std::cout << "Size: " << Queue.Size() << '\n';
-
-    std::cout << "Dequeue: " << Queue.Dequeue() << '\n';
-    std::cout << "Dequeue: " << Queue.Dequeue() << '\n';
-
-    std::cout << Queue << '\n';
-
-    Queue.Enqueue(40);
-    Queue.Enqueue(50);
-    Queue.Enqueue(60);
-    Queue.Enqueue(70);
-
-    std::cout << Queue << '\n';
-
-    std::cout << "IsFull: " << Queue.IsFull() << '\n';
-
-    try
-    {
-        Queue.Enqueue(80);
-    }
-    catch (const std::exception& Exception)
-    {
-        std::cout << "Exception: " << Exception.what() << '\n';
-    }
-
-    while (!Queue.IsEmpty())
-    {
-        std::cout << "Removed: " << Queue.Dequeue() << '\n';
-    }
-
-    try
-    {
-        Queue.Dequeue();
-    }
-    catch (const std::exception& Exception)
-    {
-        std::cout << "Exception: " << Exception.what() << '\n';
-    }
-}
+//void TestArrayQueue()
+//{
+//    std::cout << "\n===== ARRAY QUEUE =====\n";
+//
+//    ArrayQueue<int> Queue(5);
+//
+//    Queue.Enqueue(10);
+//    Queue.Enqueue(20);
+//    Queue.Enqueue(30);
+//
+//    std::cout << Queue << '\n';
+//
+//    std::cout << "Peek: " << Queue.Peek() << '\n';
+//    std::cout << "Size: " << Queue.Size() << '\n';
+//
+//    std::cout << "Dequeue: " << Queue.Dequeue() << '\n';
+//    std::cout << "Dequeue: " << Queue.Dequeue() << '\n';
+//
+//    std::cout << Queue << '\n';
+//
+//    Queue.Enqueue(40);
+//    Queue.Enqueue(50);
+//    Queue.Enqueue(60);
+//    Queue.Enqueue(70);
+//
+//    std::cout << Queue << '\n';
+//
+//    std::cout << "IsFull: " << Queue.IsFull() << '\n';
+//
+//    try
+//    {
+//        Queue.Enqueue(80);
+//    }
+//    catch (const std::exception& Exception)
+//    {
+//        std::cout << "Exception: " << Exception.what() << '\n';
+//    }
+//
+//    while (!Queue.IsEmpty())
+//    {
+//        std::cout << "Removed: " << Queue.Dequeue() << '\n';
+//    }
+//
+//    try
+//    {
+//        Queue.Dequeue();
+//    }
+//    catch (const std::exception& Exception)
+//    {
+//        std::cout << "Exception: " << Exception.what() << '\n';
+//    }
+//}
 
 void TestPriorityQueue()
 {
@@ -492,6 +506,169 @@ void TestUnionFind()
     std::cout << "===== END UNION FIND TEST =====\n";
 }
 
+// 1. Wrap the original ArrayQueue with a Mutex to make it thread-safe fairly
+template <typename T>
+class SynchronizedArrayQueue {
+private:
+    ArrayQueue<T> queue_;
+    std::mutex mutex_;
+public:
+    explicit SynchronizedArrayQueue(std::size_t capacity) : queue_(capacity) {}
+
+    bool enqueue(const T& element) {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (queue_.full()) return false;
+        queue_.enqueue(element);
+        return true;
+    }
+
+    bool dequeue(T& out_element) {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (queue_.empty()) return false;
+        out_element = queue_.dequeue();
+        return true;
+    }
+};
+
+// Structure simulating HFT market data
+struct MarketTick {
+    uint64_t sequence;
+    double price;
+    uint32_t quantity;
+};
+
+// Global stress test settings (C++14 digit separator notation)
+constexpr std::size_t kNumOperations = 5'000'000; // 5 million iterations
+constexpr std::size_t kQueueCapacity = 4'096;     // Must be power of 2 for lock-free
+
+// ===========================================================================
+// BENCHMARK / STRESS FUNCTIONS
+// ===========================================================================
+
+void run_lock_free_stress_test() {
+    LockFreeSPSCQueue<MarketTick, kQueueCapacity> spsc_queue;
+    std::atomic<bool> start_signal{ false };
+    std::atomic<uint64_t> checksum_produced{ 0 };
+    std::atomic<uint64_t> checksum_consumed{ 0 };
+
+    std::thread producer([&]() {
+        while (!start_signal.load(std::memory_order_relaxed));
+        uint64_t local_checksum = 0;
+
+        for (uint64_t i = 1; i <= kNumOperations; ++i) {
+            MarketTick tick{ i, 100.50 + (i % 10), static_cast<uint32_t>(10 * i) };
+            local_checksum += tick.sequence;
+
+            while (!spsc_queue.enqueue(std::move(tick))) {
+                _mm_pause(); // Windows/MSVC intrinsic for low-latency spin-wait
+            }
+        }
+        checksum_produced.store(local_checksum, std::memory_order_relaxed);
+        });
+
+    std::thread consumer([&]() {
+        while (!start_signal.load(std::memory_order_relaxed));
+        uint64_t local_checksum = 0;
+        std::size_t consumed_count = 0;
+        MarketTick tick;
+
+        while (consumed_count < kNumOperations) {
+            if (spsc_queue.dequeue(tick)) {
+                local_checksum += tick.sequence;
+                consumed_count++;
+            }
+            else {
+                _mm_pause();
+            }
+        }
+        checksum_consumed.store(local_checksum, std::memory_order_relaxed);
+        });
+
+    auto start_time = std::chrono::high_resolution_clock::now();
+    start_signal.store(true);
+
+    producer.join();
+    consumer.join();
+    auto end_time = std::chrono::high_resolution_clock::now();
+
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+
+    std::cout << "\n========================================\n";
+    std::cout << "= RESULTS: LOCK-FREE SPSC QUEUE (YOUR CURRENT VERSION)\n";
+    std::cout << "========================================\n";
+    std::cout << "Total Time: " << duration << " ms\n";
+    std::cout << "Throughput:  " << (kNumOperations / (duration / 1000.0)) / 1'000'000.0 << " million ops/s\n";
+
+    if (checksum_produced.load() == checksum_consumed.load()) {
+        std::cout << "STATUS: Success! Checksum is intact. Zero losses.\n";
+    }
+    else {
+        std::cout << "STATUS: Concurrency error detected!\n";
+    }
+}
+
+void run_synchronized_array_test() {
+    SynchronizedArrayQueue<MarketTick> sync_queue(kQueueCapacity);
+    std::atomic<bool> start_signal{ false };
+    std::atomic<uint64_t> checksum_produced{ 0 };
+    std::atomic<uint64_t> checksum_consumed{ 0 };
+
+    std::thread producer([&]() {
+        while (!start_signal.load(std::memory_order_relaxed));
+        uint64_t local_checksum = 0;
+
+        for (uint64_t i = 1; i <= kNumOperations; ++i) {
+            MarketTick tick{ i, 100.50 + (i % 10), static_cast<uint32_t>(10 * i) };
+            local_checksum += tick.sequence;
+
+            while (!sync_queue.enqueue(tick)) {
+                _mm_pause();
+            }
+        }
+        checksum_produced.store(local_checksum, std::memory_order_relaxed);
+        });
+
+    std::thread consumer([&]() {
+        while (!start_signal.load(std::memory_order_relaxed));
+        uint64_t local_checksum = 0;
+        std::size_t consumed_count = 0;
+        MarketTick tick;
+
+        while (consumed_count < kNumOperations) {
+            if (sync_queue.dequeue(tick)) {
+                local_checksum += tick.sequence;
+                consumed_count++;
+            }
+            else {
+                _mm_pause();
+            }
+        }
+        checksum_consumed.store(local_checksum, std::memory_order_relaxed);
+        });
+
+    auto start_time = std::chrono::high_resolution_clock::now();
+    start_signal.store(true);
+
+    producer.join();
+    consumer.join();
+    auto end_time = std::chrono::high_resolution_clock::now();
+
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+
+    std::cout << "\n========================================\n";
+    std::cout << "= RESULTS: SYNCHRONIZED ARRAY QUEUE (YOUR PREVIOUS VERSION)\n";
+    std::cout << "========================================\n";
+    std::cout << "Total Time: " << duration << " ms\n";
+    std::cout << "Throughput:  " << (kNumOperations / (duration / 1000.0)) / 1'000'000.0 << " million ops/s\n";
+
+    if (checksum_produced.load() == checksum_consumed.load()) {
+        std::cout << "STATUS: Success! Checksum is intact. Zero losses.\n";
+    }
+    else {
+        std::cout << "STATUS: Concurrency error detected!\n";
+    }
+}
+
 int main()
 {
     //TestPriorityQueue();
@@ -501,7 +678,14 @@ int main()
     //TestSeparateChainingHashTable();
     //testHashTableQuadraticProbing();
 
-    TestUnionFind();
+    //TestUnionFind();
+
+    std::cout << "Starting Stress Test in Visual Studio (Windows x64)...\n";
+    std::cout << "Processing volume per queue: " << kNumOperations << " Market Ticks.\n";
+
+    // Run comparative tests
+    run_lock_free_stress_test();
+    run_synchronized_array_test();
 
     return 0;
 }

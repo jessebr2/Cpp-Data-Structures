@@ -17,7 +17,7 @@ add_executable(
     "include/PriorityQueue.h"
     "include/BinarySearchTree.h"
     "include/HashTable/SeparateChainingHashTable.h"
- "include/HashTable/HashTableQuadraticProbing.h" "include/UnionFind.h" "include/LowLatency/LockFreeSPSCQueue.h")
+ "include/HashTable/HashTableQuadraticProbing.h" "include/UnionFind.h" "include/LowLatency/LockFreeSPSCQueue.h" "include/LowLatency/LLConstants.h" )
 
 target_include_directories(
     CppDataStructures
