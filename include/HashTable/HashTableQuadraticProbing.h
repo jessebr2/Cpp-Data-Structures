@@ -371,12 +371,12 @@ public:
 	// operator<< overload
 	friend std::ostream& operator<<(std::ostream& OutputStream, const HashTableQuadraticProbing& HashTable)
 	{
-		OutputStream << '{\n';
+		OutputStream << "{\n";
 		for (std::size_t i = 0; i < HashTable.capacity; ++i)
 		{
-			if (HashTable.stateTable[i] == HashTable.BucketState::Occupied)
+			if (HashTable.stateTable[i] == BucketState::Occupied)
 			{
-				OutputStream << '[' << keyTable[i] << ': ' << valueTable[i] << ']\n';
+				OutputStream << '[' << HashTable.keyTable[i] << ": " << HashTable.valueTable[i] << "]\n";
 			}
 		}
 		OutputStream << '}';

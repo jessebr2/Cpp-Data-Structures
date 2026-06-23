@@ -21,8 +21,12 @@
 #include <cassert>
 #include <atomic>
 
-// Windows/MSVC intrinsics library for CPU pause
+// CPU pause intrinsic for spin-wait loops (portable across MSVC/GCC/Clang)
+#if defined(_MSC_VER)
 #include <intrin.h>
+#else
+#include <immintrin.h> 
+#endif
 
 #include "LowLatency/LockFreeSPSCQueue.h"   
 

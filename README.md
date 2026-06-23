@@ -23,3 +23,17 @@ A personal study project focused on implementing classic data structures and alg
 
 ## Low Latency
 - [x] Lock Free Single Producer Single Consumer Queue
+
+## Build (Linux)
+
+Compile the example program with:
+
+```bash
+g++ -std=c++20 -Iinclude -pthread examples/main.cpp -o DSTest
+```
+
+Run:
+
+```bash
+./DSTest
+```

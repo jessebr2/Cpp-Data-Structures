@@ -4,5 +4,5 @@
 
 namespace ll::config
 {
-	inline constexpr std::size_t kCacheLineSize = std::hardware_destructive_interference_size;
+	inline constexpr std::size_t kCacheLineSize = 64;
 }
