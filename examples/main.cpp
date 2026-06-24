@@ -598,7 +598,7 @@ void run_lock_free_stress_test() {
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
 
     std::cout << "\n========================================\n";
-    std::cout << "= RESULTS: LOCK-FREE SPSC QUEUE (YOUR CURRENT VERSION)\n";
+    std::cout << "= RESULTS: LOCK-FREE SPSC QUEUE (LOW LATENCY VERSION)\n";
     std::cout << "========================================\n";
     std::cout << "Total Time: " << duration << " ms\n";
     std::cout << "Throughput:  " << (kNumOperations / (duration / 1000.0)) / 1'000'000.0 << " million ops/s\n";
@@ -660,7 +660,7 @@ void run_synchronized_array_test() {
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
 
     std::cout << "\n========================================\n";
-    std::cout << "= RESULTS: SYNCHRONIZED ARRAY QUEUE (YOUR PREVIOUS VERSION)\n";
+    std::cout << "= RESULTS: SYNCHRONIZED ARRAY QUEUE (CLASSICAL VERSION)\n";
     std::cout << "========================================\n";
     std::cout << "Total Time: " << duration << " ms\n";
     std::cout << "Throughput:  " << (kNumOperations / (duration / 1000.0)) / 1'000'000.0 << " million ops/s\n";
@@ -684,7 +684,7 @@ int main()
 
     //TestUnionFind();
 
-    std::cout << "Starting Stress Test in Visual Studio (Windows x64)...\n";
+    std::cout << "Starting Stress Test in Ubuntu x86_64...\n";
     std::cout << "Processing volume per queue: " << kNumOperations << " Market Ticks.\n";
 
     // Run comparative tests

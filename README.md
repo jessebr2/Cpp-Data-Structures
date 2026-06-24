@@ -26,10 +26,23 @@ A personal study project focused on implementing classic data structures and alg
 
 ## Build (Linux)
 
-Compile the example program with:
+Recommended (CMake):
 
 ```bash
-g++ -std=c++20 -Iinclude -pthread examples/main.cpp -o DSTest
+cmake -S . -B build
+cmake --build build -j
+```
+
+Run:
+
+```bash
+./build/CppDataStructures
+```
+
+Manual compile (g++):
+
+```bash
+g++ -std=c++20 -O3 -Iinclude -pthread examples/main.cpp -o DSTest
 ```
 
 Run:
