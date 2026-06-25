@@ -21,14 +21,21 @@
 #include <cassert>
 #include <atomic>
 
-// CPU pause intrinsic for spin-wait loops (portable across MSVC/GCC/Clang)
-#if defined(_MSC_VER)
-#include <intrin.h>
-#else
-#include <immintrin.h> 
+// Use PAUSE only on Linux x86/x86_64; otherwise fallback to scheduler yield.
+#if defined(__linux__) && (defined(__x86_64__) || defined(__i386__))
+#include <immintrin.h>
 #endif
 
 #include "LowLatency/LockFreeSPSCQueue.h"   
+
+inline void cpu_spin_pause()
+{
+#if defined(__linux__) && (defined(__x86_64__) || defined(__i386__))
+    _mm_pause();
+#else
+    std::this_thread::yield();
+#endif
+}
 
 
 void TestListQueue()
@@ -564,7 +571,7 @@ void run_lock_free_stress_test() {
             local_checksum += tick.sequence;
 
             while (!spsc_queue.enqueue(std::move(tick))) {
-                _mm_pause(); // Windows/MSVC intrinsic for low-latency spin-wait
+                cpu_spin_pause();
             }
         }
         checksum_produced.store(local_checksum, std::memory_order_relaxed);
@@ -582,7 +589,7 @@ void run_lock_free_stress_test() {
                 consumed_count++;
             }
             else {
-                _mm_pause();
+                cpu_spin_pause();
             }
         }
         checksum_consumed.store(local_checksum, std::memory_order_relaxed);
@@ -626,7 +633,7 @@ void run_synchronized_array_test() {
             local_checksum += tick.sequence;
 
             while (!sync_queue.enqueue(tick)) {
-                _mm_pause();
+                cpu_spin_pause();
             }
         }
         checksum_produced.store(local_checksum, std::memory_order_relaxed);
@@ -644,7 +651,7 @@ void run_synchronized_array_test() {
                 consumed_count++;
             }
             else {
-                _mm_pause();
+                cpu_spin_pause();
             }
         }
         checksum_consumed.store(local_checksum, std::memory_order_relaxed);
